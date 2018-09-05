@@ -28,9 +28,9 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile('org.springframework.boot:spring-boot-devtoolss')
+	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+	compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1200-jdbc41'
 	compile('org.projectlombok:lombok:1.18.2')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.projectlombok:lombok:1.18.2')
 }
-
-mainClassName = "com.pigeon.post.messaging.messagingdemo.MessagingDemoApplication"

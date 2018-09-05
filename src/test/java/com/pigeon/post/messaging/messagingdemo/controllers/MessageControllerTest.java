@@ -3,6 +3,9 @@ package com.pigeon.post.messaging.messagingdemo.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pigeon.post.messaging.messagingdemo.model.MessageRequest;
 import com.pigeon.post.messaging.messagingdemo.model.MessageResponse;
+import com.pigeon.post.messaging.messagingdemo.services.MessagingService;
+import com.pigeon.post.messaging.messagingdemo.utils.NumberFinder;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -28,12 +33,22 @@ public class MessageControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private MessagingService messagingServiceMock;
+
+    @Before
+    public void setUp() {
+        messagingServiceMock = mock(MessagingService.class);
+    }
+
     @Test
     public void testReceiveMessageOkResponse() throws Exception{
         MessageRequest messageRequest = new MessageRequest();
-        messageRequest.setFrom("1234567890");
-        messageRequest.setTo("0987654321");
+        messageRequest.setFrom("4924195509197");
+        messageRequest.setTo("4924195509197");
         messageRequest.setText("qwerty");
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
         MvcResult result = mockMvc.perform(post("/receiveMessage")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -52,6 +67,9 @@ public class MessageControllerTest {
         messageRequest.setTo("0987654321");
         messageRequest.setText("qwerty");
 
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
+
         MvcResult result = mockMvc.perform(post("/receiveMessage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
@@ -65,9 +83,12 @@ public class MessageControllerTest {
     @Test
     public void testReceiveMessageBadRequestInvalidData() throws Exception{
         MessageRequest messageRequest = new MessageRequest();
-        messageRequest.setFrom("1234567890");
+        messageRequest.setFrom("4924195509197");
         messageRequest.setTo("0987qwqrwq");
         messageRequest.setText("qwerty");
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
         MvcResult result = mockMvc.perform(post("/receiveMessage")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -85,6 +106,9 @@ public class MessageControllerTest {
         messageRequest.setFrom("1234");
         messageRequest.setTo("0987654321");
         messageRequest.setText("qwerty");
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
         mockMvc.perform(delete("/receiveMessage")
                 .contentType(MediaType.APPLICATION_JSON)

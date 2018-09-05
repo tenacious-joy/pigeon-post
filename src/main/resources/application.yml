@@ -1,0 +1,15 @@
+server:
+  port: 6000
+spring:
+  jpa:
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+    database: POSTGRESQL
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/sms
+    driver-class-name: org.postgresql.Driver
