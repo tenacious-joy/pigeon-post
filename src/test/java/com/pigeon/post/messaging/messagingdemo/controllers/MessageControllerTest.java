@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pigeon.post.messaging.messagingdemo.model.MessageRequest;
 import com.pigeon.post.messaging.messagingdemo.model.MessageResponse;
 import com.pigeon.post.messaging.messagingdemo.services.MessagingService;
-import com.pigeon.post.messaging.messagingdemo.utils.NumberFinder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +15,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

@@ -13,3 +13,6 @@ spring:
     platform: postgres
     url: jdbc:postgresql://localhost:5432/sms
     driver-class-name: org.postgresql.Driver
+  redis:
+    host: 127.0.0.1
+    port: 6379

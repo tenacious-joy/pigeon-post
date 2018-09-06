@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public class MessagingService {
 
     @Autowired
@@ -18,7 +17,7 @@ public class MessagingService {
             Contact contact = contactRepository.findContactByNumber(number);
             return contact != null ? contact.getNumber() : null;
         } catch (Exception e) {
-            log.error("Unable to fetch phone number from the repository", e);
+           // log.error("Unable to fetch phone number from the repository", e);
         }
         return null;
     }
