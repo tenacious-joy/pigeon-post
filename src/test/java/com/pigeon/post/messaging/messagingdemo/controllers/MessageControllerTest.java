@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,8 @@ public class MessageControllerTest {
         when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
         when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
-        MvcResult result = mockMvc.perform(post("/receiveMessage")
+        MvcResult result = mockMvc.perform(post("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
                 .andExpect(status().isOk())
@@ -68,7 +70,8 @@ public class MessageControllerTest {
         when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
         when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
-        MvcResult result = mockMvc.perform(post("/receiveMessage")
+        MvcResult result = mockMvc.perform(post("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
                 .andExpect(status().isBadRequest())
@@ -88,7 +91,8 @@ public class MessageControllerTest {
         when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
         when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
-        MvcResult result = mockMvc.perform(post("/receiveMessage")
+        MvcResult result = mockMvc.perform(post("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
                 .andExpect(status().isBadRequest())
@@ -108,7 +112,8 @@ public class MessageControllerTest {
         when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
         when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
 
-        mockMvc.perform(delete("/receiveMessage")
+        mockMvc.perform(delete("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
                 .andExpect(status().isMethodNotAllowed())

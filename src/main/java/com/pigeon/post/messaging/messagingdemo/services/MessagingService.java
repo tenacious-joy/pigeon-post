@@ -2,7 +2,6 @@ package com.pigeon.post.messaging.messagingdemo.services;
 
 import com.pigeon.post.messaging.messagingdemo.model.Contact;
 import com.pigeon.post.messaging.messagingdemo.repositories.ContactRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

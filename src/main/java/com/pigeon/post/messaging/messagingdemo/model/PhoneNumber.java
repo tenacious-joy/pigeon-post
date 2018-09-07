@@ -11,4 +11,5 @@ public class PhoneNumber implements Serializable {
     private String to;
     private int count;
     private Date now;
+    private String text;
 }
