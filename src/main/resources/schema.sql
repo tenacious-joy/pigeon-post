@@ -40,7 +40,7 @@ CREATE TABLE account (
 );
 
 
-ALTER TABLE public.account OWNER TO postgres;
+ALTER TABLE public.account OWNER TO postgresadmin;
 
 --
 -- Name: account_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -54,7 +54,7 @@ CREATE SEQUENCE account_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.account_id_seq OWNER TO postgres;
+ALTER TABLE public.account_id_seq OWNER TO postgresadmin;
 
 --
 -- Name: account_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -74,7 +74,7 @@ CREATE TABLE phone_number (
 );
 
 
-ALTER TABLE public.phone_number OWNER TO postgres;
+ALTER TABLE public.phone_number OWNER TO postgresadmin;
 
 --
 -- Name: phone_number_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -88,7 +88,7 @@ CREATE SEQUENCE phone_number_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.phone_number_id_seq OWNER TO postgres;
+ALTER TABLE public.phone_number_id_seq OWNER TO postgresadmin;
 
 --
 -- Name: phone_number_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -116,11 +116,11 @@ ALTER TABLE ONLY phone_number ALTER COLUMN id SET DEFAULT nextval('phone_number_
 --
 
 COPY account (id, auth_id, username) FROM stdin;
-1	20S0KPNOIM	plivo1
-2	54P2EOKQ47	plivo2
-3	9LLV6I4ZWI	plivo3
-4	YHWE3HDLPQ	plivo4
-5	6DLH8A25XZ	plivo5
+1	20S0KPNOIM	azr1
+2	54P2EOKQ47	azr2
+3	9LLV6I4ZWI	azr3
+4	YHWE3HDLPQ	azr4
+5	6DLH8A25XZ	azr5
 \.
 
 
@@ -254,8 +254,8 @@ ALTER TABLE ONLY phone_number
 --
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
+REVOKE ALL ON SCHEMA public FROM postgresadmin;
+GRANT ALL ON SCHEMA public TO postgresadmin;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 

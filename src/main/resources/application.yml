@@ -11,8 +11,11 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
   datasource:
     platform: postgres
-    url: jdbc:postgresql://localhost:5432/sms
+    url: jdbc:postgresql://pigeon.cpdf1oo5iqsf.us-east-2.rds.amazonaws.com:5432/sms
+   #url: jdbc:postgresql://localhost:5432/sms
     driver-class-name: org.postgresql.Driver
+    username: postgresadmin
+    password: postgres
   redis:
     host: 127.0.0.1
     port: 6379
