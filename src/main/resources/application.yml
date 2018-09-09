@@ -1,5 +1,5 @@
 server:
-  port: 6000
+  port: 5000
 spring:
   jpa:
     properties:
@@ -11,11 +11,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
   datasource:
     platform: postgres
-    url: jdbc:postgresql://pigeon.cpdf1oo5iqsf.us-east-2.rds.amazonaws.com:5432/sms
-   #url: jdbc:postgresql://localhost:5432/sms
+    url: ${DB_URL:changeit}
     driver-class-name: org.postgresql.Driver
-    username: postgresadmin
-    password: postgres
+    username: ${DB_USERNAME:changeit}
+    password: ${DB_PASSWORD:changeit}
   redis:
-    host: 127.0.0.1
-    port: 6379
+    host: ${REDIS_HOST:changeit}
+    port: ${REDIS_PORT:changeit}

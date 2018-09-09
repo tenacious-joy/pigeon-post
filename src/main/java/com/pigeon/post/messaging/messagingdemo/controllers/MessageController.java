@@ -9,10 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.Instant;
@@ -25,6 +22,11 @@ public class MessageController {
 
     @Autowired
     RedisTemplate<String, Object> redisTemplate;
+
+    @GetMapping
+    public ResponseEntity<String> ping() {
+        return new ResponseEntity<String>("pong", HttpStatus.OK);
+    }
 
     @RequestMapping(value = "/receive", method = RequestMethod.POST)
     public ResponseEntity<MessageResponse> receiveMessage(@Validated(Complete.class) @RequestBody MessageRequest messageRequest) {

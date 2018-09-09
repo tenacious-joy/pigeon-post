@@ -1,5 +1,6 @@
 package com.pigeon.post.messaging.messagingdemo.configurations;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -11,9 +12,18 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfiguration {
 
+    @Value("${spring.redis.host}")
+    String redisHost;
+
+    @Value("${spring.redis.port}")
+    String redisPort;
+
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
-        return new JedisConnectionFactory();
+        JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
+        jedisConnectionFactory.setHostName(redisHost);
+        jedisConnectionFactory.setPort(Integer.parseInt(redisPort));
+        return jedisConnectionFactory;
     }
 
     @Bean
