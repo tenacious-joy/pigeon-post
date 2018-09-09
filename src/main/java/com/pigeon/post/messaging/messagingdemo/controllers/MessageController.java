@@ -1,6 +1,7 @@
 package com.pigeon.post.messaging.messagingdemo.controllers;
 
 import com.pigeon.post.messaging.messagingdemo.configurations.Complete;
+import com.pigeon.post.messaging.messagingdemo.helper.MessageCommunicationHelper;
 import com.pigeon.post.messaging.messagingdemo.model.MessageRequest;
 import com.pigeon.post.messaging.messagingdemo.model.MessageResponse;
 import com.pigeon.post.messaging.messagingdemo.model.PhoneNumber;
@@ -12,13 +13,16 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.time.Instant;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
+
+import static com.pigeon.post.messaging.messagingdemo.helper.Literals.*;
 
 @RestController
 @RequestMapping("/message")
 public class MessageController {
+
+    @Autowired
+    MessageCommunicationHelper messageCommunicationHelper;
+
 
     @Autowired
     RedisTemplate<String, Object> redisTemplate;
@@ -30,11 +34,11 @@ public class MessageController {
 
     @RequestMapping(value = "/receive", method = RequestMethod.POST)
     public ResponseEntity<MessageResponse> receiveMessage(@Validated(Complete.class) @RequestBody MessageRequest messageRequest) {
-        if ("STOP".equals(messageRequest.getText())) {
-            cacheRequest(messageRequest, 4, "stop");
+        if (STOP.equalsIgnoreCase(messageRequest.getText())) {
+            messageCommunicationHelper.cacheRequest(messageRequest, 4, STOP, redisTemplate);
         }
         MessageResponse messageResponse = new MessageResponse();
-        messageResponse.setMessage("inbound sms ok");
+        messageResponse.setMessage(INBOUND_SUCCESS);
         return new ResponseEntity<>(messageResponse, HttpStatus.OK);
     }
 
@@ -42,40 +46,16 @@ public class MessageController {
     public ResponseEntity<MessageResponse> sendMessage(@Valid @RequestBody MessageRequest messageRequest) {
         MessageResponse messageResponse = new MessageResponse();
         PhoneNumber value = (PhoneNumber) redisTemplate.opsForValue().get(messageRequest.getFrom()+messageRequest.getTo());
-        if (null != value && "STOP".equalsIgnoreCase(value.getText())) {
-            messageResponse.setError(String.join(" ", "sms from",
-                    messageRequest.getFrom(), "to",
-                    messageRequest.getTo(),
-                    "blocked by STOP request"));
+        if(null == value) {
+            messageResponse.setError("unknown failure");
+            return new ResponseEntity<>(messageResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (messageCommunicationHelper.isUserRegisteredForDND(messageRequest, messageResponse, value))
             return new ResponseEntity<>(messageResponse, HttpStatus.FORBIDDEN);
-        }
-        if(redisTemplate.hasKey(messageRequest.getFrom())) {
-            PhoneNumber phoneNumber = (PhoneNumber) redisTemplate.opsForValue().get(messageRequest.getFrom());
-            if(phoneNumber.getCount() == 50) {
-                messageResponse.setError("“limit reached for from "+phoneNumber.getFrom());
-                return new ResponseEntity<>(messageResponse, HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
-            }
+        if (messageCommunicationHelper.sendOrBlock(messageRequest, messageResponse, redisTemplate))
+            return new ResponseEntity<>(messageResponse, HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
 
-            phoneNumber.setCount(phoneNumber.getCount()+1);
-            redisTemplate.opsForValue().set(messageRequest.getFrom(), phoneNumber);
-        } else {
-            cacheRequest(messageRequest, 24, "from");
-        }
-
-        messageResponse.setMessage("outbound sms ok");
+        messageResponse.setMessage(OUTBOUND_SUCCESS);
         return new ResponseEntity<>(messageResponse, HttpStatus.OK);
-    }
-
-    private void cacheRequest(MessageRequest messageRequest, int i, String cacheType) {
-        PhoneNumber phoneNumber = new PhoneNumber();
-        phoneNumber.setFrom(messageRequest.getFrom());
-        phoneNumber.setTo(messageRequest.getTo());
-        phoneNumber.setNow(Date.from(Instant.now()));
-        phoneNumber.setCount(1);
-        phoneNumber.setText(messageRequest.getText());
-        String key = "stop".equalsIgnoreCase(cacheType) ? messageRequest.getFrom()+messageRequest.getTo()
-                : messageRequest.getFrom();
-        redisTemplate.opsForValue().set(key, phoneNumber);
-        redisTemplate.expire(key, i, TimeUnit.HOURS);
     }
 }

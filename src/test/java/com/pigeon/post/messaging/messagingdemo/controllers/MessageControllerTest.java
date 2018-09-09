@@ -3,6 +3,7 @@ package com.pigeon.post.messaging.messagingdemo.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pigeon.post.messaging.messagingdemo.model.MessageRequest;
 import com.pigeon.post.messaging.messagingdemo.model.MessageResponse;
+import com.pigeon.post.messaging.messagingdemo.model.PhoneNumber;
 import com.pigeon.post.messaging.messagingdemo.services.MessagingService;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -33,10 +37,17 @@ public class MessageControllerTest {
     private MockMvc mockMvc;
 
     private MessagingService messagingServiceMock;
+    
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Before
     public void setUp() {
+
         messagingServiceMock = mock(MessagingService.class);
+        redisTemplate=  mock(RedisTemplate.class);
+        ValueOperations<String, Object> valueOperations =mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -120,6 +131,34 @@ public class MessageControllerTest {
                 .andDo(print());
     }
 
+    @Test
+    public void testSendMessageUnknownFailure() throws Exception{
+        MessageRequest messageRequest = new MessageRequest();
+        messageRequest.setFrom("4924195509197");
+        messageRequest.setTo("4924195509197");
+        messageRequest.setText("qwerty");
+
+        PhoneNumber phoneNumber = new PhoneNumber();
+        phoneNumber.setFrom(messageRequest.getFrom());
+        phoneNumber.setTo(messageRequest.getTo());
+        phoneNumber.setCount(1);
+        phoneNumber.setText(messageRequest.getText());
+
+        redisTemplate.opsForValue().set(messageRequest.getFrom()+messageRequest.getTo(), phoneNumber);
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
+        when(redisTemplate.opsForValue().get(anyString())).thenReturn(phoneNumber);
+
+        mockMvc.perform(post("/message/send")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(messageRequest)))
+                .andExpect(status().isInternalServerError())
+                .andDo(print())
+                .andReturn();
+    }
+
     public static String asJsonString(final Object obj) {
         try {
             final ObjectMapper mapper = new ObjectMapper();
@@ -139,4 +178,5 @@ public class MessageControllerTest {
             throw new RuntimeException(e);
         }
     }
+
 }
