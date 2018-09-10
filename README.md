@@ -31,7 +31,7 @@ Follow the steps below if you would like to replicate the production environment
     brew services start postgresql
     createuser -s postgresadmin
     createdb -T template0 sms
-    psql sms < /{PATH}/schema.sql
+    psql sms < /{PATH}/schema.sqlio
   Your DB string should be:
     `jdbc:postgresql://localhost:5432/sms`
  
@@ -72,7 +72,7 @@ Same sample request can be used for receiving messages with the URL:
     
 # Run tests
     
-    ./gradlew test
+    ./gradlew test -PspringProfile=dev
     
 The application has been deployed in Amazon Web Services.
  
