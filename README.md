@@ -22,6 +22,8 @@ The application is developed using spring boot, gradle, Java. And it's backed by
  **Install gradle**
  
     brew install gradle
+    
+Follow the steps below if you would like to replicate the production environment locally. Else you can skip.
  
  **Install postgres**
  
@@ -51,7 +53,7 @@ Note: Leave DB_USERNAME and DB_PASSWORD to be empty.
     
 # Run application
 
-    ./gradlew bootRun
+    ./gradlew bootRun -PspringProfile=dev
     
 # Sample Request:
 
