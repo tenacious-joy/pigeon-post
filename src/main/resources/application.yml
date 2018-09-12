@@ -36,3 +36,5 @@ spring:
     host: ${REDIS_HOST:changeit}
     port: ${REDIS_PORT:changeit}
   profiles: prod
+server:
+  port: 5000
