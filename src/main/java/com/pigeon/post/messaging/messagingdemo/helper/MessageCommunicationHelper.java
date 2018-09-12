@@ -16,7 +16,7 @@ import static com.pigeon.post.messaging.messagingdemo.helper.Literals.STOP;
 @Service
 public class MessageCommunicationHelper {
 
-    public boolean sendOrBlock(MessageRequest messageRequest, MessageResponse messageResponse, RedisTemplate<String, Object> redisTemplate) {
+    public boolean blockMessageCommunication(MessageRequest messageRequest, MessageResponse messageResponse, RedisTemplate<String, Object> redisTemplate) {
         if(redisTemplate.hasKey(messageRequest.getFrom())) {
             PhoneNumber phoneNumber = (PhoneNumber) redisTemplate.opsForValue().get(messageRequest.getFrom());
             if (isSendingLimitExceeded(messageResponse, phoneNumber)) return true;
@@ -47,10 +47,18 @@ public class MessageCommunicationHelper {
         phoneNumber.setNow(Date.from(Instant.now()));
         phoneNumber.setCount(1);
         phoneNumber.setText(messageRequest.getText());
-        String key = STOP.equalsIgnoreCase(cacheType) ? messageRequest.getFrom()+messageRequest.getTo()
-                : messageRequest.getFrom();
-        redisTemplate.opsForValue().set(key, phoneNumber);
-        redisTemplate.expire(key, i, TimeUnit.HOURS);
+        if (STOP.equalsIgnoreCase(cacheType)) {
+            String key1 = messageRequest.getFrom()+messageRequest.getTo();
+            String key2 = messageRequest.getTo()+messageRequest.getFrom();
+            redisTemplate.opsForValue().set(key1, phoneNumber);
+            redisTemplate.opsForValue().set(key2, phoneNumber);
+            redisTemplate.expire(key1, i, TimeUnit.HOURS);
+            redisTemplate.expire(key2, i, TimeUnit.HOURS);
+        } else {
+            String key = messageRequest.getFrom();
+            redisTemplate.opsForValue().set(key, phoneNumber);
+            redisTemplate.expire(key, i, TimeUnit.HOURS);
+        }
     }
 
     private boolean isSendingLimitExceeded(MessageResponse messageResponse, PhoneNumber phoneNumber) {

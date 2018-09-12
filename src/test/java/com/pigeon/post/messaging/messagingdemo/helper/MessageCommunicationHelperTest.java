@@ -44,7 +44,7 @@ public class MessageCommunicationHelperTest {
     public void testSendOrBlockCacheScenario() {
 
         redisTemplateMock.opsForValue().set("1234", phoneNumber);
-        boolean result = messageCommunicationHelper.sendOrBlock(messageRequest, messageResponse, redisTemplateMock);
+        boolean result = messageCommunicationHelper.blockMessageCommunication(messageRequest, messageResponse, redisTemplateMock);
         assertFalse(result);
     }
 

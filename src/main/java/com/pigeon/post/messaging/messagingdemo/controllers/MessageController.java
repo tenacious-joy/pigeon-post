@@ -43,18 +43,13 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/send", method = RequestMethod.POST)
-    public ResponseEntity<MessageResponse> sendMessage(@Valid @RequestBody MessageRequest messageRequest) {
+    public ResponseEntity<MessageResponse> sendMessage(@Validated(Complete.class) @RequestBody MessageRequest messageRequest) {
         MessageResponse messageResponse = new MessageResponse();
         PhoneNumber value = (PhoneNumber) redisTemplate.opsForValue().get(messageRequest.getFrom()+messageRequest.getTo());
-        if(null == value) {
-            messageResponse.setError("unknown failure");
-            return new ResponseEntity<>(messageResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
         if (messageCommunicationHelper.isUserRegisteredForDND(messageRequest, messageResponse, value))
             return new ResponseEntity<>(messageResponse, HttpStatus.FORBIDDEN);
-        if (messageCommunicationHelper.sendOrBlock(messageRequest, messageResponse, redisTemplate))
+        if (messageCommunicationHelper.blockMessageCommunication(messageRequest, messageResponse, redisTemplate))
             return new ResponseEntity<>(messageResponse, HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
-
         messageResponse.setMessage(OUTBOUND_SUCCESS);
         return new ResponseEntity<>(messageResponse, HttpStatus.OK);
     }

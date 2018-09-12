@@ -12,15 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -30,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
+@ActiveProfiles("dev")
 @AutoConfigureMockMvc
 public class MessageControllerTest {
 
@@ -43,11 +43,7 @@ public class MessageControllerTest {
 
     @Before
     public void setUp() {
-
         messagingServiceMock = mock(MessagingService.class);
-        redisTemplate=  mock(RedisTemplate.class);
-        ValueOperations<String, Object> valueOperations =mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -69,6 +65,64 @@ public class MessageControllerTest {
                 .andReturn();
         MessageResponse response = asObject(result.getResponse().getContentAsString());
         assertThat(response.getMessage(), is("inbound sms ok"));
+    }
+
+    @Test
+    public void testReceiveMessageSTOPScenario() throws Exception{
+        MessageRequest messageRequest = new MessageRequest();
+        messageRequest.setFrom("4924195509197");
+        messageRequest.setTo("4924195509197");
+        messageRequest.setText("STOP");
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
+
+        mockMvc.perform(post("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(messageRequest)))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+        PhoneNumber phoneNumber = (PhoneNumber) redisTemplate.opsForValue().get(messageRequest.getFrom()+messageRequest.getTo());
+        assertThat(phoneNumber.getText(), is("STOP"));
+
+        mockMvc.perform(post("/message/send")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(messageRequest)))
+                .andExpect(status().isForbidden())
+                .andDo(print())
+                .andReturn();
+    }
+
+    @Test
+    public void testRequestLimitSendMessage() throws Exception{
+        MessageRequest messageRequest = new MessageRequest();
+        messageRequest.setFrom("4924195509049");
+        messageRequest.setTo("4924195509197");
+        messageRequest.setText("STOP");
+
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
+        when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
+
+        for(int i=0;i<50;i++) {
+            mockMvc.perform(post("/message/send")
+                    .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(asJsonString(messageRequest)))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn();
+        }
+
+        mockMvc.perform(post("/message/send")
+                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(messageRequest)))
+                .andExpect(status().isBandwidthLimitExceeded())
+                .andDo(print())
+                .andReturn();
     }
 
     @Test
@@ -132,29 +186,20 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void testSendMessageUnknownFailure() throws Exception{
+    public void testBadUserAuthentication() throws Exception{
         MessageRequest messageRequest = new MessageRequest();
         messageRequest.setFrom("4924195509197");
         messageRequest.setTo("4924195509197");
         messageRequest.setText("qwerty");
 
-        PhoneNumber phoneNumber = new PhoneNumber();
-        phoneNumber.setFrom(messageRequest.getFrom());
-        phoneNumber.setTo(messageRequest.getTo());
-        phoneNumber.setCount(1);
-        phoneNumber.setText(messageRequest.getText());
-
-        redisTemplate.opsForValue().set(messageRequest.getFrom()+messageRequest.getTo(), phoneNumber);
-
         when(messagingServiceMock.fetchContactNumber(messageRequest.getFrom())).thenReturn(messageRequest.getFrom());
         when(messagingServiceMock.fetchContactNumber(messageRequest.getTo())).thenReturn(messageRequest.getTo());
-        when(redisTemplate.opsForValue().get(anyString())).thenReturn(phoneNumber);
 
-        mockMvc.perform(post("/message/send")
-                .header("Authorization", "Basic cGxpdm8xOjIwUzBLUE5PSU0=")
+        mockMvc.perform(post("/message/receive")
+                .header("Authorization", "Basic cGxpdm8xMToyMFMwS1BOT0lN")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(messageRequest)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andReturn();
     }
